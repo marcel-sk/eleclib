@@ -34,6 +34,7 @@ R_RANGE = [0,100]
 class Household:
     def __init__(self, 
         prompt = False,
+        file_source = None,
         square_footage = DEFAULT_SQUARE_FOOTAGE, 
         heating_type = DEFAULT_HEATING_TYPE, 
         water_heater_type = DEFAULT_WATER_HEATER, 
@@ -45,11 +46,15 @@ class Household:
         light_bulbs = DEFAULT_BULB_TYPE, 
         R_roof = DEFAULT_R_ROOF, 
         R_walls = DEFAULT_R_WALLS,
+        off_grid = False,
         occupants = 3):
         
         if prompt:
             #set up state by interactive prompting
             self.prompt_for_args()
+        elif file_source:
+            self.load_from_file(file_source)
+            
         else:
             #programmatic construction
             self.set_square_footage(square_footage)
@@ -65,7 +70,12 @@ class Household:
             self.set_R_walls(R_walls)
             self.set_occupants(occupants)
             
+            #no checks to be done
+            self.off_grid = off_grid
+            
 #--------------------------SETTER METHODS------------------------------------
+    def load_from_file(self,file_source):
+        return False
         
     def set_square_footage(self,square_footage):
         #verify type
@@ -82,10 +92,18 @@ class Household:
             return False
         
     def set_heating_type(self, heating_type):
-        self.heating_type = heating_type
+        if heating_type in HEATING_TYPES:
+            self.heating_type = heating_type
+            return True
+        else:
+            return False
         
     def set_water_heater_type(self, water_heater_type):
-        self.water_heater_type = water_heater_type
+        if water_heater_type in WATER_HEATER_TYPES:
+            self.water_heater_type = water_heater_type
+            return True
+        else:
+            return False
             
     def set_oven_type(self, oven_type):
         if oven_type in OVEN_TYPES:
@@ -441,7 +459,22 @@ class Household:
             
 #--------------------------------REPORTING AND RECOMMENDATIONS-----------------------
     def get_recommendations(self):
-        return False
+        recommendations = []
+        
+        if self.light_bulbs != LED:
+            recommendations.append("You should switch to LED lighting! It uses much less power than older varieties")
+            
+        if self.off_grid:
+            if self.fridge_type = "electric":
+                recommendations.append("Switch to a low voltage fridge. They are much more efficient than the alternatives. Being off-grid you already have low voltage power on site!")
+                
+        if self.R_roof < 30 or R_walls < 24:
+            recommendations.append("Your insulation is less than modern building code (for Ontario). It could be worth upgrading next time you have access to it.")
+            
+        if self.square_footage > (1000 + self.occupants*400):
+            recommendations.append("You probably don't need so much space. Consider down-sizing")
+        
+        return recommendations
     
-    def report(media="xlsx"):
+    def report(format="xlsx"):
         return False
