@@ -6,6 +6,7 @@ authors = ["marcel-sk <marcelskura1@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+import-ipynb = "^0.1.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
