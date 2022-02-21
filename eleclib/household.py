@@ -12,7 +12,7 @@ WATER_HEATER_CAPACITY_RANGE = [3,200]
 DEFAULT_OVEN_TYPE = "gas"
 OVEN_TYPES = ["gas", "electric-full", "electric-toaster", "none"]
 DEFAULT_OVEN_WATTAGE = 5000
-OVEN_WATTAGE_RANGE = [1000-15000]
+OVEN_WATTAGE_RANGE = [1000,15000]
               
 DEFAULT_BULB_TYPE = "LED"
 LIGHT_BULB_TYPES = ["LED", "halogen", "incandescent"]
@@ -210,6 +210,13 @@ class Household:
             return False
         
 #------------------PROMPTING FOR SETUP------------------------------------------
+
+    def get_input(self, message):
+        '''
+        This method is for testing purposes (and good code structure). 
+        It allows the prompt_* methods to be decoupled from the stdin so that we can inject test case values in place of manual testing.
+        '''
+        return input(message)
     
     def prompt_for_args(self):
         print("Creating new household...")
@@ -228,8 +235,8 @@ class Household:
         self.prompt_R_walls()
         
     def prompt_square_footage(self):
-        square_footage_raw = input("enter square footage (default: " + str(DEFAULT_SQUARE_FOOTAGE) + ") >")
-        
+        square_footage_raw = self.get_input("enter square footage (default: " + str(DEFAULT_SQUARE_FOOTAGE) + ") >")
+        #try_count = 1 #recursion depth count (for testing purposes mostly)
         if not square_footage_raw:
             if self.set_square_footage(DEFAULT_SQUARE_FOOTAGE):
                 return True
@@ -249,7 +256,7 @@ class Household:
 
  
     def prompt_oven_type(self):
-        oven_type = input("enter oven type (default: " + DEFAULT_OVEN_TYPE + ") >")
+        oven_type = self.get_input("enter oven type (default: " + DEFAULT_OVEN_TYPE + ") >")
                   
         #no entry, use default
         if not oven_type:
@@ -268,7 +275,7 @@ class Household:
                 self.prompt_oven_type()
                   
     def prompt_oven_wattage(self):
-        oven_wattage = input("enter oven wattage (default: " + str(DEFAULT_OVEN_WATTAGE) + ") >")
+        oven_wattage = self.get_input("enter oven wattage (default: " + str(DEFAULT_OVEN_WATTAGE) + ") >")
         #no entry, use default
         if not oven_wattage:
             assert(self.oven_is_electric())
@@ -288,7 +295,7 @@ class Household:
         
     def prompt_heating_type(self):
         
-        heating_type = input("enter heating type (default: " + DEFAULT_HEATING_TYPE + ") >")
+        heating_type = self.get_input("enter heating type (default: " + DEFAULT_HEATING_TYPE + ") >")
                   
         #no entry, use default
         if not heating_type:
@@ -308,7 +315,7 @@ class Household:
         
     def prompt_fridge_type(self):
         
-        fridge_type = input("enter fridge type (default: " + DEFAULT_FRIDGE_TYPE + ") >")
+        fridge_type = self.get_input("enter fridge type (default: " + DEFAULT_FRIDGE_TYPE + ") >")
                   
         #no entry, use default
         if not fridge_type:
@@ -329,7 +336,7 @@ class Household:
     def prompt_fridge_wattage(self):
         print("To enter value in running watts enter <### watts>")
         print("This will assume 8 running hrs/day")
-        fridge_wattage_raw = input("enter fridge wattage (default: " + str(DEFAULT_FRIDGE_WATTAGE) + ") >")
+        fridge_wattage_raw = self.get_input("enter fridge wattage (default: " + str(DEFAULT_FRIDGE_WATTAGE) + ") >")
                       
         #no entry, use default- different 120v vs 12v defaults
         if not fridge_wattage_raw:
@@ -366,7 +373,7 @@ class Household:
                       
     def prompt_bulb_type(self):
         
-        bulb_type = input("enter light bulb type (default: " + DEFAULT_BULB_TYPE + ") >")
+        bulb_type = self.get_input("enter light bulb type (default: " + DEFAULT_BULB_TYPE + ") >")
                   
         #no entry, use default
         if not bulb_type:
@@ -385,7 +392,7 @@ class Household:
                 self.prompt_bulb_type()
                       
     def prompt_R_roof(self):
-        R_roof = input("enter roof insulation R-value (default: " + str(DEFAULT_R_ROOF) + ") >")
+        R_roof = self.get_input("enter roof insulation R-value (default: " + str(DEFAULT_R_ROOF) + ") >")
         #no entry, use default
         if not R_roof:
             if self.set_R_roof(DEFAULT_R_ROOF):
@@ -403,7 +410,7 @@ class Household:
                 self.prompt_R_roof()
         
     def prompt_R_walls(self):
-        R_walls = input("enter wall insulation R-value (default: " + str(DEFAULT_R_WALLS) + ") >")
+        R_walls = self.get_input("enter wall insulation R-value (default: " + str(DEFAULT_R_WALLS) + ") >")
         #no entry, use default
         if not R_walls:
             if self.set_R_walls(DEFAULT_R_WALLS):
@@ -465,7 +472,7 @@ class Household:
             recommendations.append("You should switch to LED lighting! It uses much less power than older varieties")
             
         if self.off_grid:
-            if self.fridge_type = "electric":
+            if self.fridge_type == "electric":
                 recommendations.append("Switch to a low voltage fridge. They are much more efficient than the alternatives. Being off-grid you already have low voltage power on site!")
                 
         if self.R_roof < 30 or R_walls < 24:
