@@ -25,26 +25,35 @@ class cmdInputTest(unittest.TestCase):
         "10",         #oven wattage- incorrect
         "100000",     #oven wattage- incorrect
         "5000 watts", #oven wattage- extra characters (acceptable)
-        "gass",       #heating type- incorrect
+        "gap",        #heating type- incorrect
         "gas",        #heating type- correct
         "electrik",   #water heater type- incorrect
         "electric",   #water heater type- correct
+        "10",         #water heater wattage- incorrect
+        "100000",     #water heater wattage- incorrect
+        "2500 watts", #water heater wattage- acceptable
+        "1",          #water heater capacity- incorrect
+        "50",         #water heater capacity- correct
         "electrik",   #fridge type- incorrect
         "electric",   #fridge type- correct
         "10",         #fridge wattage- incorrect
         "100000",     #fridge wattage- incorrect
         "250 watts",  #fridge wattage- convert from watts to kwh/yr(acceptable)
         "",           #light bulb type
+        "electrik",    #pump type- incorrect
+        "electric",    #pump type- correct
+        "nan",        #pump wattage- incorrect
+        "2500",       #pump wattage- correct
         "",           #roof insulation R-value
         ""])          #wall insulation R-value
-    def test_prompt_for_args_1(self, input):          
+    def test_prompt_for_args_1(self, input):  
         self.house.prompt_for_args()
         print(str(self.house))
         
     '''
     test prompt_for_args() with a list of user input values. Use all defaults.
     '''
-    @patch('eleclib.household.Household.get_input',side_effect=([""]*10))
+    @patch('eleclib.household.Household.get_input',side_effect=([""]*15))
     def test_prompt_for_args_2(self, input):          
         self.house.prompt_for_args()
         print(str(self.house))
