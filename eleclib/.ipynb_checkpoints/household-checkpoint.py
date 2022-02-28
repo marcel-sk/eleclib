@@ -316,14 +316,23 @@ class Household(object):
 
     def get_consumption(self, days: int = 1, peak: bool = False):
         
-        total = (self.oven.get_consumption(days, peak) 
-                 + self.heater.get_consumption(days, peak) 
-                 + self.water_heater.get_consumption(days, peak) 
-                 + self.lights.get_consumption(days, peak) 
-                 + self.pump.get_consumption(days, peak) 
-                 + self.fridge.get_consumption(days, peak)
-                )/1000
-        return total
+        total = 0
+        for appliance in self.appliances:
+            total += appliance.get_consumption()
+        
+        return total/1000
+    
+    def get_peak_current(self):
+        
+        total = 0
+        for appliance in self.appliances:
+            total += appliance.get_peak_current()
+        #total value is scaled back since all appliances will never be 
+        #running all at the same time
+        scaling_factor = 0.75
+        return total*scaling_factor
+        
+        
 
    
     def get_recommendations(self):

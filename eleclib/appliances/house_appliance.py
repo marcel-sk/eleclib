@@ -234,9 +234,9 @@ class Pump(HouseholdAppliance):
     '''
     
     def __init__(self,
+                 power_type: str = None,
                  wattage: int = None,
                  occupants: int = None,
-                 power_type: str = None,
                  household = None):
                  
                  
@@ -292,9 +292,9 @@ class WaterHeater(HouseholdAppliance):
     '''
     
     def __init__(self,
+                 power_type: str = None,
                  wattage: int = None,
                  occupants: int = None,
-                 power_type: str = None,
                  household = None):
                  
         super().__init__('water heater',
@@ -345,11 +345,11 @@ class Heater(HouseholdAppliance):
     '''
     
     def __init__(self,
+                 power_type: str = None,
                  wattage: int = None,
                  square_footage: int = None,
                  R_roof: int = None,
                  R_walls: int = None,
-                 power_type: str = None,
                  household = None):
                  
         super().__init__('heater',

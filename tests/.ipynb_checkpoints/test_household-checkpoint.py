@@ -66,6 +66,8 @@ class cmdInputTest(unittest.TestCase):
     def test_prompt_for_args_1(self, input):  
         self.house.prompt_for_args()
         print(str(self.house))
+        print(self.house.get_consumption())
+        print(self.house.get_max_current())
         
     '''
     test prompt_for_args() with a list of user input values. Use all defaults.
