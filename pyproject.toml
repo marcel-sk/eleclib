@@ -7,6 +7,9 @@ authors = ["marcel-sk <marcelskura1@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 import-ipynb = "^0.1.3"
+xlwt = "^1.3.0"
+openpyxl = "^3.0.9"
+pandas = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

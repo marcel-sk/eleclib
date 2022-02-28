@@ -1,220 +1,204 @@
+from eleclib.utility import extract_number, add_indent
+from eleclib.appliances import *
+from numbers import Number
+
+'''
+# Class Household
+A Household contains information about the appliances in a house,
+the number of occupants, the construction of the building, location,
+and other info about the surroundings. 
+It provides methods for sizing off-grid solutions, storing data to 
+various file types, and calculating values like total power consumption,
+maximum current draw, etc. which are useful in sizing electrical panels 
+and cables.
+
+### USAGE
+You can initialize a Household without parameters and then define the 
+parameters via command prompts
+>myHouse = Household()\
+>myHouse.prompt_for_args()
+
+OR You can pass in arguments to the constructor:
+
+Finally you can use the reporting methods to generate
+files, and calculate relevant values.
+>print(str(myHouse))\
+>myHouse.get_consumption()\
+>myHouse.get_max_current()
+
+### TODO: 
+* add support for propane-electric which may be run on propane part of 
+the year and electric the rest.
+* programmatic input- add argument unit
+* reporting methods- reinstate
+* add a has_been_set variable so we know to prompt about default or current value...
+   
+'''
+
 DEFAULT_SQUARE_FOOTAGE = 6000
 SQUARE_FOOTAGE_RANGE = [100,20000]
 
-DEFAULT_HEATING_TYPE = "gas"
-HEATING_TYPES = ["gas","wood","baseboard-electric","geo-electric","infloor-electric","none"]
-
-DEFAULT_WATER_HEATER = "gas"
-WATER_HEATER_TYPES = ["gas","electric","none"]
-DEFAULT_WATER_HEATER_CAP = 50 #Gallons
-WATER_HEATER_CAPACITY_RANGE = [3,200]
-
-DEFAULT_OVEN_TYPE = "gas"
-OVEN_TYPES = ["gas", "electric-full", "electric-toaster", "none"]
-DEFAULT_OVEN_WATTAGE = 5000
-OVEN_WATTAGE_RANGE = [1000,15000]
-              
-DEFAULT_BULB_TYPE = "LED"
-LIGHT_BULB_TYPES = ["LED", "halogen", "incandescent"]
-
-DEFAULT_FRIDGE_TYPE = "electric"
-FRIDGE_TYPES = ["electric", "electic-low-volt", "propane", "propane-electric"]
-DEFAULT_FRIDGE_WATTAGE_SPEC = "Kwh/yr"
-WATTAGE_SPECS = ["Kwh/yr", "wh/day", "kwh/month", "running watts", "peak watts"]
-#--THESE ARE IN KWH/YEAR--
-DEFAULT_FRIDGE_WATTAGE = 400
-DEFAULT_12V_FRIDGE_WATTAGE = 250
-FRIDGE_WATTAGE_RANGE = [50,5000]
-
-#R-VALUES BASED ON CURRENT BUILDING CODE VALUES FOR CANADA
+#R-VALUES BASED ON CURRENT BUILDING CODE VALUES FOR CANADA (Ontario 2021)
 DEFAULT_R_ROOF = 30
 DEFAULT_R_WALLS = 24
 R_RANGE = [0,100]
 
-class Household:
+DEFAULT_OCCUPANTS = 3
+OCCUPANTS_RANGE = [1,100]
+
+class Household(object):
     def __init__(self, 
-        prompt = False,
-        file_source = None,
-        square_footage = DEFAULT_SQUARE_FOOTAGE, 
-        heating_type = DEFAULT_HEATING_TYPE, 
-        water_heater_type = DEFAULT_WATER_HEATER, 
-        oven_type = DEFAULT_OVEN_TYPE,
-        oven_wattage = 0,
-        fridge_type = DEFAULT_FRIDGE_TYPE,
-        fridge_wattage_spec = DEFAULT_FRIDGE_WATTAGE_SPEC,
-        fridge_wattage = DEFAULT_FRIDGE_WATTAGE,
-        light_bulbs = DEFAULT_BULB_TYPE, 
-        R_roof = DEFAULT_R_ROOF, 
-        R_walls = DEFAULT_R_WALLS,
+        square_footage: int = None, 
+        R_roof: float = None, 
+        R_walls: float = None,
         off_grid = False,
-        occupants = 3):
+        occupants: int = None, 
+        appliances = [
+                      "heater", 
+                      "water heater", 
+                      "fridge", 
+                      "lights", 
+                      "pump", 
+                      "oven"
+                     ],
+        **kwargs):
+        self.default_sf = 6000
+        self.sf_range = [100, 20000]
+        self.default_R_roof = 30
+        self.default_R_walls = 24
+        self.R_range = [1, 100]
+        self.default_occupants = 3
+        self.occupants_range = [1, 100]
         
-        if prompt:
-            #set up state by interactive prompting
-            self.prompt_for_args()
-        elif file_source:
-            self.load_from_file(file_source)
-            
-        else:
-            #programmatic construction
-            self.set_square_footage(square_footage)
-            self.set_heating_type(heating_type)
-            self.set_water_heater_type(water_heater_type)
-            self.set_oven_type(oven_type)
-            self.set_oven_wattage(oven_wattage)
-            self.set_fridge_type(fridge_type)
-            self.set_fridge_wattage_spec(fridge_wattage_spec)
-            self.set_fridge_wattage(fridge_wattage)
-            self.set_bulb_type(light_bulbs)
-            self.set_R_roof(R_roof)
-            self.set_R_walls(R_walls)
-            self.set_occupants(occupants)
-            
-            #no checks to be done
-            self.off_grid = off_grid
-            
-#--------------------------SETTER METHODS------------------------------------
-    def load_from_file(self,file_source):
-        return False
-        
-    def set_square_footage(self,square_footage):
-        #verify type
-        if (type(square_footage) != int):
-            return false
-        
-        #verify range
-        min_val = SQUARE_FOOTAGE_RANGE[0]
-        max_val = SQUARE_FOOTAGE_RANGE[1]
-        if (square_footage and min_val<=square_footage<=max_val):
-            self.square_footage = square_footage
-            return True
-        else:
-            return False
-        
-    def set_heating_type(self, heating_type):
-        if heating_type in HEATING_TYPES:
-            self.heating_type = heating_type
-            return True
-        else:
-            return False
-        
-    def set_water_heater_type(self, water_heater_type):
-        if water_heater_type in WATER_HEATER_TYPES:
-            self.water_heater_type = water_heater_type
-            return True
-        else:
-            return False
-            
-    def set_oven_type(self, oven_type):
-        if oven_type in OVEN_TYPES:
-            self.oven_type = oven_type
-            return True
-        else:
-            return False
-        
-    def set_oven_wattage(self, oven_wattage):
-        assert(type(oven_wattage)==int)
-        
-        min_val = OVEN_WATTAGE_RANGE[0]
-        max_val = OVEN_WATTAGE_RANGE[1]
-        
-        if min_val<=oven_wattage<=max_val:
-            self.oven_wattage = oven_wattage
-            return True
-        else:
-            return False
-        
-    def set_fridge_type(self, fridge_type):
-        if fridge_type in FRIDGE_TYPES:
-            self.fridge_type = fridge_type
-            return True
-        else:
-            return False
-        
-        
-    def set_fridge_wattage_spec(self, fridge_wattage_spec):
-        if fridge_wattage_spec in WATTAGE_SPECS:
-            self.fridge_wattage_spec = fridge_wattage_spec
-            return True
-        else:
-            return False
-        
-    def set_fridge_wattage(self, fridge_wattage):
-        assert(type(fridge_wattage)==int)
-        
-        min_val = FRIDGE_WATTAGE_RANGE[0]
-        max_val = FRIDGE_WATTAGE_RANGE[1]
-        
-        if min_val<=fridge_wattage<=max_val:
-            self.fridge_wattage = fridge_wattage
-            return True
-        else:
-            return False
-            
-    def set_bulb_type(self, light_bulbs):
-        if light_bulbs in LIGHT_BULB_TYPES:
-            self.light_bulbs = light_bulbs
-            return True
-        else:
-            return False
-            
-    def set_R_roof(self, R_roof):
-        assert(type(R_roof)==int)
-        
-        min_val = R_RANGE[0]
-        max_val = R_RANGE[1]
-        
-        if min_val<=R_roof<=max_val:
-            self.R_roof = R_roof
-            return True
-        else:
-            return False
-            
-    def set_R_walls(self, R_walls):
-        assert(type(R_walls)==int)
-        
-        min_val = R_RANGE[0]
-        max_val = R_RANGE[1]
-        
-        if min_val<=R_walls<=max_val:
-            self.R_walls = R_walls
-            return True
-        else:
-            return False
-        
-    def set_occupants(self, occupants):
-        assert(type(occupants)==int)
-        if 1 <= occupants <= 100:
-            self.occupants = occupants
-            return True
+        self.set_R_roof(R_roof)
+        self.set_R_walls(R_walls)
+        self.set_square_footage(square_footage)
+        self.set_occupants(occupants)
+        self.set_off_grid(off_grid)
+        self.set_appliances(appliances)
+    
+    def load_from_file(self, file):
         return False
     
-#------------------------------------
+    def set_appliances(self, appliances):
+        '''
+        Pass appliances in as a list of strings containing appliance names,
+        or as a list of objects for each appliance
+        '''
+        self.appliances = []
+        appliance_names = {"heater": Heater,
+                           "water heater": WaterHeater,
+                           "fridge": Fridge,
+                           "lights": Lights,
+                           "pump": Pump,
+                           "oven": Oven}
         
-    def oven_is_electric(self):
-        if (self.oven_type in OVEN_TYPES and self.oven_type in "electric"):
+        for appliance in appliances:
+            if type(appliance)==str:
+                appliance = appliance.lower()
+                if appliance in appliance_names:
+                    self.appliances.append(
+                        appliance_names[appliance](household = self))
+                else:
+                    raise Exception("supplied appliance name in ",
+                                    "Household.set_appliances does not exist")
+            elif issubclass(appliance,Appliance):
+                self.appliances.append(appliance)
+            else:
+                raise TypeError("Error Household.set_appliances should",
+                                "get a list of type str or Appliance")
+        return True
+    
+        
+    def __str__(self):
+        text = "------------Household------------\n"
+        text += "square footage: " + str(self.square_footage) + " square feet\n"
+        text += "Appliances: \n"
+        for appliance in self.appliances:
+            text += add_indent(str(appliance), 4)
+        text += "roof insulation: R-" + str(self.R_roof) + "\n"
+        text += "wall insulation: R-" + str(self.R_walls) + "\n"
+        return text
+            
+#--------------------------SETTER METHODS------------------------------------
+
+    def set_square_footage(self,square_footage: int = None):
+        if square_footage:
+            assert self.square_footage_valid(square_footage)
+            self.square_footage = square_footage
+        else:
+            self.square_footage = self.default_sf
+            
+    def set_R_roof(self,R_roof: float = None):
+        if R_roof:
+            assert self.R_valid(R_roof)
+            self.R_roof = R_roof
+        else:
+            self.R_roof = self.default_R_roof
+            
+    def set_R_walls(self,R_walls: int = None):   
+        if R_walls:
+            assert self.R_valid(R_walls)
+            self.R_walls = R_walls
+        else:
+            self.R_walls = self.default_R_walls
+            
+    def set_occupants(self,occupants: int = None):
+        if occupants:
+            assert self.occupants_valid(occupants)
+            self.occupants = occupants
+        else:
+            self.occupants = self.default_occupants
+
+    
+    def set_off_grid(self, off):
+        assert(type(off)==bool)
+        self.off_grid = off
+        
+#------------------GETTERS------------------------------------------
+    
+    def get_square_footage(self):
+        return self.square_footage
+    
+    def get_R_roof(self):
+        return self.R_roof
+    
+    def get_R_walls(self):
+        return self.R_walls
+    
+    def get_occupants(self):
+        return self.occupants
+    
+#--------------checks-----------------------------------------------
+
+    def square_footage_valid(self, sf: int):
+        if type(sf) == int and self.sf_range[0]<=sf<=self.sf_range[1]:
             return True
         else:
             return False
         
-    def heating_is_electric(self):
-        if (self.heating_type in HEATING_TYPES and self.heating_type in "electric"):
+    def R_valid(self, R_val: float):
+        if (isinstance(R_val, Number)
+                and self.R_range[0]<=R_val<=self.R_range[1]):
             return True
         else:
             return False
         
-    def fridge_is_electric(self):
-        if (self.fridge_type in FRIDGE_TYPES and self.fridge_type in "electric"):
+    def occupants_valid(self, occupants: int):
+        if (type(occupants) == int 
+                and self.occupants_range[0] <= occupants <= self.occupants_range[1]):
             return True
         else:
             return False
         
-#------------------PROMPTING FOR SETUP------------------------------------------
+    
+#------------------PROMPTING FOR SETUP-------------------------------------
 
     def get_input(self, message):
         '''
         This method is for testing purposes (and good code structure). 
-        It allows the prompt_* methods to be decoupled from the stdin so that we can inject test case values in place of manual testing.
+        It allows the prompt_* methods to be decoupled from the stdin so that 
+        we can inject test case values in place of manual testing.
         '''
         return input(message)
     
@@ -222,266 +206,171 @@ class Household:
         print("Creating new household...")
         print("Enter values specified or ENTER to use defaults")
         
-        self.prompt_square_footage()
-        self.prompt_oven_type()
-        if self.oven_is_electric():
-            self.promp_oven_wattage()
-        self.prompt_heating_type()
-        self.prompt_fridge_type()
-        if self.fridge_is_electric():
-            self.prompt_fridge_wattage()
-        self.prompt_bulb_type()
-        self.prompt_R_roof()
-        self.prompt_R_walls()
+        self._prompt_sf()
+        self._prompt_R_roof()
+        self._prompt_R_walls()
+        self._prompt_occupants()
         
-    def prompt_square_footage(self):
-        square_footage_raw = self.get_input("enter square footage (default: " + str(DEFAULT_SQUARE_FOOTAGE) + ") >")
-        #try_count = 1 #recursion depth count (for testing purposes mostly)
+        for appliance in self.appliances:
+            appliance.prompt(get_input=self.get_input)       
+        
+        #self.water_heater.set_usage(occupants=self.occupants)
+        
+    def _prompt_sf(self):
+        square_footage_raw = self.get_input("enter square footage (default: " 
+                                            + str(self.default_sf) 
+                                            + ") >")
+        
         if not square_footage_raw:
-            if self.set_square_footage(DEFAULT_SQUARE_FOOTAGE):
-                return True
-            else:
-                return False
+            self.set_square_footage(self.default_sf)
         
         else:
-            square_footage = int(square_footage_raw)
-            if self.set_square_footage(square_footage):
-                return True
+            square_footage = int(extract_number(square_footage_raw))
+            if self.square_footage_valid(square_footage):
+                self.set_square_footage(square_footage)
+                
             else:
                 print("Error: Input invalid!")
                 min_val = SQUARE_FOOTAGE_RANGE[0]
                 max_val = SQUARE_FOOTAGE_RANGE[1]
-                print("should be an integer between ", min_val, " and ", max_val, " representing the total square footage of the house")
-                self.prompt_square_footage()
-
- 
-    def prompt_oven_type(self):
-        oven_type = self.get_input("enter oven type (default: " + DEFAULT_OVEN_TYPE + ") >")
-                  
-        #no entry, use default
-        if not oven_type:
-            if self.set_oven_type(DEFAULT_OVEN_TYPE):
-                return True
-            return False
-        
-        else:
-            if self.set_oven_type(oven_type):
-                return True
-            else:
-                print("Error: Input invalid!")
-                print("should be one of ")
-                for element in OVEN_TYPES:
-                      print("   ",element, ",")
-                self.prompt_oven_type()
-                  
-    def prompt_oven_wattage(self):
-        oven_wattage = self.get_input("enter oven wattage (default: " + str(DEFAULT_OVEN_WATTAGE) + ") >")
-        #no entry, use default
-        if not oven_wattage:
-            assert(self.oven_is_electric())
-            if self.set_oven_wattage(DEFAULT_OVEN_WATTAGE):
-                return True
-            return False
-                      
-        else:
-            if self.set_oven_wattage(oven_wattage):
-                return True
-            else:
-                print("Error: Input invalid!")
-                min_val = OVEN_WATTAGE_RANGE[0]
-                max_val = OVEN_WATTAGE_RANGE[1]
-                print("should be an integer between ", min_val, " and ", max_val, " representing the rated power in watts")
-                self.prompt_oven_wattage()
-        
-    def prompt_heating_type(self):
-        
-        heating_type = self.get_input("enter heating type (default: " + DEFAULT_HEATING_TYPE + ") >")
-                  
-        #no entry, use default
-        if not heating_type:
-            if self.set_heating_type(DEFAULT_HEATING_TYPE):
-                return True
-            return False
-        
-        else:
-            if self.set_heating_type(heating_type):
-                return True
-            else:
-                print("Error: Input invalid!")
-                print("should be one of ")
-                for element in HEATING_TYPES:
-                      print("   ",element, ",")
-                self.prompt_heating_type()
-        
-    def prompt_fridge_type(self):
-        
-        fridge_type = self.get_input("enter fridge type (default: " + DEFAULT_FRIDGE_TYPE + ") >")
-                  
-        #no entry, use default
-        if not fridge_type:
-            if self.set_fridge_type(DEFAULT_FRIDGE_TYPE):
-                return True
-            return False
-        
-        else:
-            if self.set_fridge_type(fridge_type):
-                return True
-            else:
-                print("Error: Input invalid!")
-                print("should be one of ")
-                for element in FRIDGE_TYPES:
-                      print("   ",element, ",")
-                self.prompt_fridge_type()
-                      
-    def prompt_fridge_wattage(self):
-        print("To enter value in running watts enter <### watts>")
-        print("This will assume 8 running hrs/day")
-        fridge_wattage_raw = self.get_input("enter fridge wattage (default: " + str(DEFAULT_FRIDGE_WATTAGE) + ") >")
-                      
-        #no entry, use default- different 120v vs 12v defaults
-        if not fridge_wattage_raw:
-            if self.fridge_type == "electric":
-                fridge_wattage = DEFAULT_FRIDGE_WATTAGE
-            elif (self.fridge_type == "electric-low-volt" or self.fridge_type == "propane-electric"):
-                fridge_wattage = DEFAULT_12V_FRIDGE_WATTAGE
-                      
-        #watts entered to change unit used- convert by 8hrs running time/day
-        elif fridge_wattage_raw in "watts":
-            chars = ""
-            for char in fridge_wattage_raw:
-                if char.isdigit():
-                      chars.append(char)
-            wattage = int(chars)
-            fridge_wattage = wattage*8*365/1000
-            
-        #input should be just a number (in string format)              
-        else:
-            try:
-                fridge_wattage = int(fridge_wattage_raw)
-            except:
-                fridge_wattage = None
-                
-        if fridge_wattage and self.set_fridge_wattage(fridge_wattage):
-            return True
-        else:
-            print("Error: Input invalid!")
-            min_val = FRIDGE_WATTAGE_RANGE[0]
-            max_val = FRIDGE_WATTAGE_RANGE[1]
-            print("should be an integer between ", min_val, " and ", max_val, " representing the yearly Kwh consumption")
-            self.prompt_fridge_wattage()
-                      
-                      
-    def prompt_bulb_type(self):
-        
-        bulb_type = self.get_input("enter light bulb type (default: " + DEFAULT_BULB_TYPE + ") >")
-                  
-        #no entry, use default
-        if not bulb_type:
-            if self.set_bulb_type(DEFAULT_BULB_TYPE):
-                return True
-            return False
-        
-        else:
-            if self.set_bulb_type(bulb_type):
-                return True
-            else:
-                print("Error: Input invalid!")
-                print("should be one of ")
-                for element in LIGHT_BULB_TYPES:
-                      print("   ",element, ",")
-                self.prompt_bulb_type()
-                      
-    def prompt_R_roof(self):
-        R_roof = self.get_input("enter roof insulation R-value (default: " + str(DEFAULT_R_ROOF) + ") >")
+                print("should be an integer between ", min_val, 
+                      " and ", max_val, 
+                      " representing the total square footage of the house")
+                self._prompt_sf()
+                           
+                    
+    def _prompt_R_roof(self):
+        R_roof = self.get_input("enter roof insulation R-value (default: " 
+                                + str(self.default_R_roof) 
+                                + ") >")
         #no entry, use default
         if not R_roof:
-            if self.set_R_roof(DEFAULT_R_ROOF):
-                return True
-            return False
+            self.set_R_roof(self.default_R_roof)
                       
         else:
-            if self.set_R_roof(R_roof):
-                return True
+            R_roof = extract_number(R_roof)
+            if self.R_valid(R_roof):
+                self.set_R_roof(R_roof)
             else:
                 print("Error: Input invalid!")
-                min_val = R_RANGE[0]
-                max_val = R_RANGE[1]
-                print("should be an integer between ", min_val, " and ", max_val, " representing the R-value of insulation in the roof")
-                self.prompt_R_roof()
+                min_val = self.R_range[0]
+                max_val = self.R_range[1]
+                print("should be an integer between ", 
+                      min_val, 
+                      " and ", 
+                      max_val, 
+                      " representing the R-value of insulation in the roof")
+                self._prompt_R_roof()
+
         
-    def prompt_R_walls(self):
-        R_walls = self.get_input("enter wall insulation R-value (default: " + str(DEFAULT_R_WALLS) + ") >")
+    def _prompt_R_walls(self):
+        R_walls = self.get_input("enter wall insulation R-value (default: " 
+                                 + str(self.default_R_walls) 
+                                 + ") >")
         #no entry, use default
         if not R_walls:
-            if self.set_R_walls(DEFAULT_R_WALLS):
-                return True
-            return False
-                      
+            self.set_R_walls(self.default_R_walls)
+            
         else:
-            if self.set_R_walls(R_walls):
-                return True
+            R_walls = extract_number(R_walls)
+            if self.R_valid(R_walls):
+                self.set_R_walls(R_walls)
             else:
                 print("Error: Input invalid!")
-                min_val = R_RANGE[0]
-                max_val = R_RANGE[1]
-                print("should be an integer between ", min_val, " and ", max_val, " representing the R-value of insulation in the exterior walls")
-                self.prompt_R_walls()
-        
-    #-------------------------------------ACCESSORS---------------------------------
-    def get_power_usage(self):
-        total_usage = (self.get_lighting_usage() +
-            self.get_oven_usage() +
-            self.get_heating_usage() +
-            self.get_water_heater_usage() +
-            self.get_pump_usage() +
-            self.get_fridge_usage())/1000
-        return total_usage
-        
+                min_val = self.R_range[0]
+                max_val = self.R_range[1]
+                print("should be an integer between ", 
+                      min_val, 
+                      " and ", 
+                      max_val, 
+                      " representing the R-value of insulation in",
+                      "the exterior walls")
+                self._prompt_R_walls()
+         
     
-    def get_lighting_usage(self):
-        #watts/day
-        return(100)
-    
-    def get_oven_usage(self):
-        if self.oven_is_electric():
-            daily = self.oven_wattage*1
-            return daily
+    def _prompt_occupants(self):
+        occupants = self.get_input("enter number of occupants (default: " 
+                                   + str(self.default_occupants) 
+                                   + ") >")
+        #no entry, use default
+        if not occupants:
+            self.set_occupants(self.default_occupants)
+                      
         else:
-            return(0)
-    
-    def get_heating_usage(self):
-        return(0)
-    
-    def get_water_heater_usage(self):
-        return(0)
-    
-    def get_pump_usage(self):
-        return(200)
-    
-    def get_fridge_usage(self):
-        daily = self.fridge_wattage*1000/365
-        return(daily)
-            
-            
-            
-#--------------------------------REPORTING AND RECOMMENDATIONS-----------------------
+            occupants = int(extract_number(occupants))
+            if self.occupants_valid(occupants):
+                self.set_occupants(occupants)
+            else:
+                print("Error: Input invalid!")
+                min_val = self.occupants_range[0]
+                max_val = self.occupants_range[1]
+                print("should be an integer between ", 
+                      min_val, 
+                      " and ", 
+                      max_val, 
+                      " representing the number of occupants")
+                self._prompt_occupants()
+         
+        
+#--------------------------------REPORTING AND RECOMMENDATIONS----------------
+
+    def get_consumption(self, days: int = 1, peak: bool = False):
+        
+        total = (self.oven.get_consumption(days, peak) 
+                 + self.heater.get_consumption(days, peak) 
+                 + self.water_heater.get_consumption(days, peak) 
+                 + self.lights.get_consumption(days, peak) 
+                 + self.pump.get_consumption(days, peak) 
+                 + self.fridge.get_consumption(days, peak)
+                )/1000
+        return total
+
+   
     def get_recommendations(self):
         recommendations = []
         
         if self.light_bulbs != LED:
-            recommendations.append("You should switch to LED lighting! It uses much less power than older varieties")
+            recommendations.append(
+                "You should switch to LED lighting!",
+                "It uses much less power than older varieties")
             
         if self.off_grid:
-            if self.fridge_type == "electric":
-                recommendations.append("Switch to a low voltage fridge. They are much more efficient than the alternatives. Being off-grid you already have low voltage power on site!")
+            if self.fridge.power_type == "electric":
+                recommendations.append(
+                    "Switch to a low voltage fridge. They are much more",
+                    "efficient than the alternatives. Being off-grid you",
+                    "already have low voltage power on site!")
                 
         if self.R_roof < 30 or R_walls < 24:
-            recommendations.append("Your insulation is less than modern building code (for Ontario). It could be worth upgrading next time you have access to it.")
+            recommendations.append(
+                "Your insulation is less than modern building code",
+                "(for Ontario). It could be worth upgrading next time",
+                "you have access to it.")
             
         if self.square_footage > (1000 + self.occupants*400):
-            recommendations.append("You probably don't need so much space. Consider down-sizing")
+            recommendations.append(
+                "You probably don't need so much space. Consider down-sizing")
         
         return recommendations
     
+    
+    
+'''
     def report(format="xlsx"):
+        
+        #Format data with columns [appliance, yearly power(kwh), max current(A)]
+        
+        index = []
+        data_rows = []
+        if self.oven_is_electric():
+            index.append("oven")
+            data_rows.append([self.get_oven_usage*365/1000, self.oven_wattage/240])
+        if self.water_heater_is_electric():
+            data_rows.append([self.water_heater_wattage*WATER_HEATER_USAGE_DAILY*365, self.water_heater_wattage/self.water_heater_voltage])
+        
+        index.append("")
+        #create dataframe
+        df = pd.DataFrame([[]])
+           
         return False
+    '''
