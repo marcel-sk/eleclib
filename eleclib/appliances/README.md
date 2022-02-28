@@ -266,3 +266,10 @@ OR
 
 ### TODO: 
 * allow wattage to be set by well depth, horsepower
+
+## TODO(overall)
+* store wattage as float
+* test each appliance for wattage outputs and currents
+* print yearly consumption in kwh/yr for all
+* heater probably a bit low?- not much
+* 'average' household consumption is a bit too high- 1300kwh per month. should be 800kwh/month or 27kwh/day note: most people heat with gas or propane, cook with electricity?

@@ -318,9 +318,9 @@ class Household(object):
         
         total = 0
         for appliance in self.appliances:
-            total += appliance.get_consumption()
+            total += appliance.get_consumption(days=days, peak=peak)
         
-        return total/1000
+        return total
     
     def get_peak_current(self):
         

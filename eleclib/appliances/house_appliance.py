@@ -255,8 +255,8 @@ class Pump(HouseholdAppliance):
         title = super().__str__() + '\n'
         indent = "wattage: " + str(self.wattage) + "\n"
         indent += ("yearly consumption: " 
-                + str(self.get_consumption(days=365))
-                + " watts\n")
+                + str(self.get_consumption(days=365)/1000)
+                + " Kwh\n")
         indent = add_indent(indent,4)
         str_rep = title + indent
         return str_rep
@@ -280,7 +280,7 @@ class Pump(HouseholdAppliance):
         
     def get_consumption(self, days: int = 1, peak: bool = False):
         usage = 1 + 0.5*(self.occupants-1)
-        return usage*self.wattage
+        return usage*self.wattage*days
         
                  
 class WaterHeater(HouseholdAppliance):
@@ -312,8 +312,8 @@ class WaterHeater(HouseholdAppliance):
         title = super().__str__() + '\n'
         indent = "wattage: " + str(self.wattage) + "\n"
         indent += ("yearly consumption: " 
-                + str(self.get_consumption(days=365))
-                + " watts\n")
+                + str(self.get_consumption(days=365)/1000)
+                + " Kwh\n")
         indent = add_indent(indent,4)
         str_rep = title + indent
         return str_rep
@@ -332,9 +332,9 @@ class WaterHeater(HouseholdAppliance):
     
     def get_consumption(self, days: int = 1, peak: bool = False):
         self.update()
-        running_time = 2 + self.occupants
-        usage = running_time*self.wattage
-        return usage*days   
+        usage = 2 + self.occupants
+        daily_wattage = usage*self.wattage
+        return daily_wattage*days   
                  
 class Heater(HouseholdAppliance):
     '''
@@ -370,8 +370,8 @@ class Heater(HouseholdAppliance):
         title = super().__str__() + '\n'
         indent = "wattage: " + str(self.wattage) + "\n"
         indent += ("yearly consumption: " 
-                + str(self.get_consumption(days=365))
-                + " watts\n")
+                + str(self.get_consumption(days=365)/1000)
+                + " Kwh\n")
         indent = add_indent(indent,4)
         str_rep = title + indent
         return str_rep
@@ -453,13 +453,13 @@ class Lights(HouseholdAppliance):
         self._set_bulb_type(bulb_type)
         
     def __str__(self):
-        indent = self.name.capitalize() + ": \n"
-        indent += "bulb type: " + str(self.bulb_type) + "\n"
+        title = self.name.capitalize() + ": \n"
+        indent = "bulb type: " + str(self.bulb_type) + "\n"
         indent += ("yearly consumption: " 
-                + str(self.get_consumption(days=365))
-                + " watts\n")
+                + str(self.get_consumption(days=365)/1000)
+                + " Kwh\n")
         indent = add_indent(indent,4)
-        return indent
+        return title + indent
                 
     def _set_bulb_type(self, bulb_type: str = None):
         if bulb_type:

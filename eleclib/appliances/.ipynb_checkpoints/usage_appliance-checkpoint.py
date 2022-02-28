@@ -159,8 +159,8 @@ class Fridge(UsageAppliance):
     def __init__(self,
                  power_type: str = None,
                  wattage: int = None,
-                 unit: str = None,
                  usage: float = None,
+                 unit: str = None,
                  **kwargs):
         
         if unit and not unit in UNITS['watts']:

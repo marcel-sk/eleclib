@@ -22,11 +22,11 @@ The easiest way to get started is to create a Household object without supplying
 
 Alternatively you can set it up programmatically, by supplying many or all of the input arguments (shown below), with the unsupplied arguments being set to default values. These inputs include a list of appliances which can be either a list of strings or Appliance type objects.
 
->myHouse = Household(square_footage = 4000,\ 
-                    R_roof = 40,\
-                    R_walls = 18,\ 
-                    occupants = 4,\ 
-                    appliances = ['oven', 'lights', 'pump'])
+>myHouse = Household(square_footage=4000,   
+    &nbsp;&nbsp;&nbsp;&nbsp; R_roof=40,   
+    &nbsp;&nbsp;&nbsp;&nbsp; R_walls=18,   
+    &nbsp;&nbsp;&nbsp;&nbsp; occupants=4,   
+    &nbsp;&nbsp;&nbsp;&nbsp; appliances=['oven', 'lights', 'pump'])
 
 Finally the Household object can be used to get load information as follows:
 >myHouse.get_consumption() #daily average in watts\
